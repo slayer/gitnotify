@@ -231,7 +231,7 @@ main() {
 			r) REV=${OPTARG} ;;
 			a) AUTHOR=${OPTARG} ;;
 			m) MAILTO="$MAILTO ${OPTARG}"; mailmode=1 ;;
-			s) SUBJECT=${OPTARG} ;;
+			s) SUBJECT="${OPTARG}" ;;
 			g) gitmode=1 ;;
 			*) usage
 			;;
