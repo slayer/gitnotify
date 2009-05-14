@@ -15,10 +15,10 @@ Running from sources (latest and greatest features)
         git clone git://github.com/slayer/gitnotify.git
 
 2. Make symlink to your script directory (eg ~/bin)
-        ln -s gitnotify/gitnotify ~/bin
+        ln -s path/to/gitnotify/gitnotify ~/bin
 
 3. Edit .git/hooks/post-commit script
-        echo '[ -x ~/bin/gitnotify/gitnotify ] && ~/bin/gitnotify/gitnotify -m vlad@crimeainfo.com -s "My repo notify"' >>.git/hooks/post-commit
+        echo '[ -x ~/bin/gitnotify/gitnotify ] && ~/bin/gitnotify/gitnotify -m your@email.address -s "[DIFF] My repo notify"' >>.git/hooks/post-commit
  
 4. Add execute bit to scripts
 
