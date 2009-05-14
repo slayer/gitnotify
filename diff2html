@@ -1,10 +1,36 @@
 #!/bin/sh
 
-LOG="LOGGGGGGGG"
+[ -x `which tempfile` ] && tempfile=`tempfile` || tempfile="/tmp/.gitnotify-$$-`date +%N`"
+
+LOG="(none)"
 TITLE="TITLE"
 REV=111
 AUTHOR="none &lt;none@none.com&gt;"
 DATE="`date`"
+SUBJECT="Config changes $REV"
+
+while getopts ":r:a:m:s:" opt; do
+	case $opt in
+		r) REV=${OPTARG} ;;
+		a) AUTHOR=${OPTARG} ;;
+		m) MAILTO=${OPTARG} ;;
+		s) SUBJECT=${OPTARG} ;;
+		*) echo ${USAGE}
+		exit 1
+		;;
+		\? ) echo ${USAGE}
+		exit 1
+		;;
+	esac
+done
+
+if [ -n "$MAILTO" ]; then
+	exec 6>&1
+	exec > $tempfile
+fi
+
+
+
 cat <<END
 <html>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
@@ -27,10 +53,10 @@ h3 { font-family: verdana,arial,helvetica,sans-serif; font-size: 10pt; font-weig
 #patch h4 {font-family: verdana,arial,helvetica,sans-serif;font-size:10pt;padding:8px;background:#369;color:#fff;margin:0;}
 #patch .propset h4, #patch .binary h4 {margin:0;}
 #patch pre {padding:0;line-height:1.2em;margin:0;}
-#patch .diff {width:100%;background:#eee;padding: 0 0 0px 0;overflow:auto;}
-#patch .propset .diff, #patch .binary .diff  {padding:0px 0;}
-#patch span {display:block;padding:0 0px;}
-#patch .modfile, #patch .addfile, #patch .delfile, #patch .propset, #patch .binary, #patch .copfile {border:1px solid #ccc;margin:0px 0;}
+#patch .diff {width:100%;background:#eee;padding: 0 0 10px 0;overflow:auto;}
+#patch .propset .diff, #patch .binary .diff  {padding:10px 0;}
+#patch span {display:block;padding:0 10px;}
+#patch .modfile, #patch .addfile, #patch .delfile, #patch .propset, #patch .binary, #patch .copfile {border:1px solid #ccc;margin:10px 0;}
 #patch ins {background:#dfd;text-decoration:none;display:block;padding:0 0px;}
 #patch del {background:#fdd;text-decoration:none;display:block;padding:0 0px;}
 #patch .lines, .info {color:#888;background:#fff;}
@@ -58,7 +84,6 @@ h3 { font-family: verdana,arial,helvetica,sans-serif; font-size: 10pt; font-weig
 </div>
 <div id="patch">
 <h3>Diff</h3>
-<pre class="diff">
 
 END
 
@@ -79,73 +104,75 @@ do
     t4=${s:0:4}
     t7=${s:0:7}
 
-    # Determine HTML class to use.
-    if    [[ "$t7" == 'Only in' ]]; then
-        cls='only'
-        if [[ $diffseen -eq 0 ]]; then
-            diffseen=1
-            echo -n '</span>'
-        else
-            if [[ $lastonly -eq 0 ]]; then
-                echo "</div>"
-            fi
-        fi
-        if [[ $lastonly -eq 0 ]]; then
-            echo "<div class='diffdiv'>"
-        fi
-        lastonly=1
-    elif [[ "$t4" == 'diff' ]]; then
-        cls='diff'
-        if [[ $diffseen -eq 0 ]]; then
-            diffseen=1
-            echo -n '</span>'
-        else
-            echo "</div>"
-        fi
-        echo "<div class='diffdiv'>"
-        lastonly=0
-    elif  [[ "$t3" == '+++'  ]]; then
-		stag='<span class="info">'
-		etag='</span>'
-        lastonly=0
-    elif  [[ "$t3" == '---'  ]]; then
-        stag='<span class="info">'
-		etag='</span>'
-        lastonly=0
-    elif  [[ "$t2" == '@@'   ]]; then
-        stag='<span class="info">'
-		etag='</span>'
-        lastonly=0
-    elif  [[ "$t1" == '+'    ]]; then
-        stag='<ins>'
-		etag='</ins>'
-        lastonly=0
-    elif  [[ "$t1" == '-'    ]]; then
-        stag='<del>'
-		etag='</del>'
-        lastonly=0
-    else
-        stag='<span class="cx">'
-		etag='</span>'
-        lastonly=0
-    fi
-
     # Convert &, <, > to HTML entities.
     s=$(sed -e 's/\&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' <<<"$s")
     if [[ $first -eq 1 ]]; then
         first=0
     fi
 
-    # Output the line.
-    if [[ "$cls" ]]; then
-        echo -ne ${stag}${s}"\n"${etag}
+    # Determine HTML class to use.
+    if    [[ "$t7" == 'Only in' ]]; then
+        cls='only'
+        #if [[ $diffseen -eq 0 ]]; then
+        #    diffseen=1
+        #    echo -n '</span>'
+        #else
+        #    if [[ $lastonly -eq 0 ]]; then
+		#		echo "</pre>"
+        #        echo "</div>"
+        #    fi
+        #fi
+        #if [[ $lastonly -eq 0 ]]; then
+        #    echo "<div class='modfile'>"
+		#	echo "<pre class='diff'>"
+        #fi
+        lastonly=1
+    elif [[ "$t4" == 'diff' ]]; then
+        cls='diff'
+        if [[ $diffseen -eq 0 ]]; then
+            diffseen=1
+        else
+			echo "</pre>"
+            echo "</div>"
+        fi
+		id="`echo ${s:5}|sed -e 's/--git//g' -e's/[\/ ]/_/g'`"
+		echo "<a id='$id'/>"
+        echo "<div class='modfile'>"
+		echo "<h4>$s</h4>"
+		echo "<pre class='diff'>"
+        lastonly=0
+    elif  [[ "$t3" == '+++'  ]]; then
+        echo -ne '<span class="info">'"$s\n"'</span>'
+        lastonly=0
+    elif  [[ "$t3" == '---'  ]]; then
+        echo -ne '<span class="info">'"$s\n"'</span>'
+        lastonly=0
+    elif  [[ "$t2" == '@@'   ]]; then
+        echo -ne '<span class="info">'"$s\n"'</span>'
+        lastonly=0
+    elif  [[ "$t1" == '+'    ]]; then
+        echo -n '<ins>'"$s"
+		echo -ne "\n</ins>"
+        lastonly=0
+    elif  [[ "$t1" == '-'    ]]; then
+        echo -n '<del>'"$s"
+		echo -ne "\n</del>"
+        lastonly=0
+    else
+        echo -ne '<span class="cx">'$s\n'</span>'
+        lastonly=0
     fi
+
+
+    # Output the line.
+    #if [[ "$cls" ]]; then
+    #fi
     read -r s
 done
 IFS=$OIFS
 
 if [[ $diffseen -eq 0  &&  $onlyseen -eq 0 ]]; then 
-    echo -n '</span>'
+    echo -n '</span q1>'
 else
     echo "</div>"
 fi
@@ -161,3 +188,9 @@ cat <<END
 </body>
 </html>
 END
+
+if [ -n "$MAILTO" ]; then
+	exec 1>&6 6>&-
+	mail -a "Content-Type: text/html; charset=UTF-8" -a "Content-Transfer-Encoding: 8bit" -a "X-Mailer: GITNotify 0.00: http://github.com/slayer/gitnotify/tree/master" -s "$SUBJECT" $MAILTO < $tempfile
+	rm $tempfile
+fi
