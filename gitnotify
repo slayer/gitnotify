@@ -210,7 +210,7 @@ send_mail() {
 
 prepare_git() {
 	[ -x `which tempfile` ] && gitdiff=`tempfile` || tempfile="/tmp/.gitnotify-gitdiff-$$-`date +%N`"
-	git-rev-parse --verify HEAD 2>/dev/null || return 1
+	git-rev-parse --verify HEAD >/dev/null 2>&1 || return 1
 
 	git-diff-index -p -M --cached HEAD^ -- >$gitdiff
 	exec 7<&0
