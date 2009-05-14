@@ -2,7 +2,7 @@ SUMMARY
 =======
 
 gitnotify is a simple shell script designed to send nice HTML diff from hooks.
-It was based on HTML and CSS code from svnnotify http://search.cpan.org/dist/SVN-Notify/ and unknown diff2html shell script
+It was based on HTML and CSS code from [svnnotify](http://search.cpan.org/dist/SVN-Notify/) and shell logic from [diff2html](http://www.linuxjournal.com/content/convert-diff-output-colorized-html) shell script
 
 QUICK START
 ===========
@@ -18,7 +18,7 @@ Running from sources (latest and greatest features)
         ln -s path/to/gitnotify/gitnotify ~/bin
 
 3. Edit .git/hooks/post-commit script
-        echo '[ -x ~/bin/gitnotify/gitnotify ] && ~/bin/gitnotify/gitnotify -m your@email.address -s "[DIFF] My repo notify"' >>.git/hooks/post-commit
+        echo '[ -x ~/bin/gitnotify ] && ~/bin/gitnotify -m your@email.address -s "[DIFF] My repo notify"' >>.git/hooks/post-commit
  
 4. Add execute bit to scripts
 
