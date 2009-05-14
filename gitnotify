@@ -30,6 +30,7 @@ DATE="`date`"
 
 usage() {
 	echo "usage: $0 [-g] [-m] [-s] [-a] [-r]"
+	exit 1
 }
 
 start_html() {
@@ -207,6 +208,19 @@ send_mail() {
 	rm $tempfile
 }
 
+prepare_git() {
+	[ -x `which tempfile` ] && gitdiff=`tempfile` || tempfile="/tmp/.gitnotify-gitdiff-$$-`date +%N`"
+	git-rev-parse --verify HEAD 2>/dev/null || return 1
+
+	git-diff-index -p -M --cached HEAD^ -- >$gitdiff
+	exec 7<&0
+	exec < $gitdiff
+}
+
+post_git() {
+	exec 0<&7 7<&-
+	rm $gitdiff
+}
 
 main() {
 	[ `basename $0` = 'gitnotify' ] && gitmode=1 || gitmode=0
@@ -220,21 +234,21 @@ main() {
 			s) SUBJECT=${OPTARG} ;;
 			g) gitmode=1 ;;
 			*) usage
-			exit 1
 			;;
 			\? ) usage
-			exit 1
 			;;
 		esac
 	done
 
 	[ $mailmode ] && prepare_mail
+	[ $gitmode ] && prepare_git || usage
 
 	start_html
 	summary
 	htmlizediff
 	end_html
 
+	[ $gitmode ] && post_git
 	[ $mailmode ] && send_mail
 }
 
