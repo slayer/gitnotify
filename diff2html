@@ -1,0 +1,163 @@
+#!/bin/sh
+
+LOG="LOGGGGGGGG"
+TITLE="TITLE"
+REV=111
+AUTHOR="none &lt;none@none.com&gt;"
+DATE="`date`"
+cat <<END
+<html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><meta http-equiv="content-type" content="text/html; charset=utf-8" /><style type="text/css"><!--
+#msg dl { border: 1px #006 solid; background: #369; padding: 6px; color: #fff; }
+#msg dt { float: left; width: 6em; font-weight: bold; }
+#msg dt:after { content:':';}
+#msg dl, #msg dt, #msg ul, #msg li, #header, #footer { font-family: verdana,arial,helvetica,sans-serif; font-size: 10pt;  }
+#msg dl a { font-weight: bold}
+#msg dl a:link    { color:#fc3; }
+#msg dl a:active  { color:#ff0; }
+#msg dl a:visited { color:#cc6; }
+h3 { font-family: verdana,arial,helvetica,sans-serif; font-size: 10pt; font-weight: bold; }
+#msg pre { overflow: auto; background: #ffc; border: 1px #fc0 solid; padding: 6px; }
+#msg ul, pre { overflow: auto; }
+#header, #footer { color: #fff; background: #636; border: 1px #300 solid; padding: 6px; }
+#patch { width: 100%; }
+#patch h4 {font-family: verdana,arial,helvetica,sans-serif;font-size:10pt;padding:8px;background:#369;color:#fff;margin:0;}
+#patch .propset h4, #patch .binary h4 {margin:0;}
+#patch pre {padding:0;line-height:1.2em;margin:0;}
+#patch .diff {width:100%;background:#eee;padding: 0 0 0px 0;overflow:auto;}
+#patch .propset .diff, #patch .binary .diff  {padding:0px 0;}
+#patch span {display:block;padding:0 0px;}
+#patch .modfile, #patch .addfile, #patch .delfile, #patch .propset, #patch .binary, #patch .copfile {border:1px solid #ccc;margin:0px 0;}
+#patch ins {background:#dfd;text-decoration:none;display:block;padding:0 0px;}
+#patch del {background:#fdd;text-decoration:none;display:block;padding:0 0px;}
+#patch .lines, .info {color:#888;background:#fff;}
+--></style>
+<title>$TITLE</title>
+</head>
+<body>
+
+<div id="msg">
+
+<dl>
+<dt>Revision</dt> <dd>$REV</dd>
+<dt>Author</dt> <dd>$AUTHOR</dd>
+<dt>Date</dt> <dd>$DATE</dd>
+</dl>
+
+<h3>Log Message</h3>
+<pre>$LOG</pre>
+
+<h3>Modified Paths</h3>
+<ul>
+<li><a href="#"></a></li>
+</ul>
+
+</div>
+<div id="patch">
+<h3>Diff</h3>
+<pre class="diff">
+
+END
+
+OIFS=$IFS
+IFS='
+'
+
+# The -r option keeps the backslash from being an escape char.
+read -r s
+
+while [[ $? -eq 0 ]]
+do
+    # Get beginning of line to determine what type
+    # of diff line it is.
+    t1=${s:0:1}
+    t2=${s:0:2}
+    t3=${s:0:3}
+    t4=${s:0:4}
+    t7=${s:0:7}
+
+    # Determine HTML class to use.
+    if    [[ "$t7" == 'Only in' ]]; then
+        cls='only'
+        if [[ $diffseen -eq 0 ]]; then
+            diffseen=1
+            echo -n '</span>'
+        else
+            if [[ $lastonly -eq 0 ]]; then
+                echo "</div>"
+            fi
+        fi
+        if [[ $lastonly -eq 0 ]]; then
+            echo "<div class='diffdiv'>"
+        fi
+        lastonly=1
+    elif [[ "$t4" == 'diff' ]]; then
+        cls='diff'
+        if [[ $diffseen -eq 0 ]]; then
+            diffseen=1
+            echo -n '</span>'
+        else
+            echo "</div>"
+        fi
+        echo "<div class='diffdiv'>"
+        lastonly=0
+    elif  [[ "$t3" == '+++'  ]]; then
+		stag='<span class="info">'
+		etag='</span>'
+        lastonly=0
+    elif  [[ "$t3" == '---'  ]]; then
+        stag='<span class="info">'
+		etag='</span>'
+        lastonly=0
+    elif  [[ "$t2" == '@@'   ]]; then
+        stag='<span class="info">'
+		etag='</span>'
+        lastonly=0
+    elif  [[ "$t1" == '+'    ]]; then
+        stag='<ins>'
+		etag='</ins>'
+        lastonly=0
+    elif  [[ "$t1" == '-'    ]]; then
+        stag='<del>'
+		etag='</del>'
+        lastonly=0
+    else
+        stag='<span class="cx">'
+		etag='</span>'
+        lastonly=0
+    fi
+
+    # Convert &, <, > to HTML entities.
+    s=$(sed -e 's/\&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' <<<"$s")
+    if [[ $first -eq 1 ]]; then
+        first=0
+    fi
+
+    # Output the line.
+    if [[ "$cls" ]]; then
+        echo -ne ${stag}${s}"\n"${etag}
+    fi
+    read -r s
+done
+IFS=$OIFS
+
+if [[ $diffseen -eq 0  &&  $onlyseen -eq 0 ]]; then 
+    echo -n '</span>'
+else
+    echo "</div>"
+fi
+echo
+#sed -e 's/^-\(.*\)$/<del>- \1\n<\/del>/' -e 's/^+\(.*\)$/<ins>+ \1<\/ins>/' -e 's/^ \(.*\)$/<span class="cx"> \1<\/span>/'  -e 's/^@\(.*\)$/<span class="lines">@\1<\/span>/'
+#sed -e 's/^\+\([^+][^+].*\)$/<ins>\1\n<\/ins>/' -e 's/^\-\([^-][^-].*\)$/<del>\1\n<\/del>/' -e 's/^---\(.*\)$/<span class="info">\1<\/span>/' -e 's/^+++\(.*\)$/<span class="info">\1<\/span>/'
+
+cat <<END
+</pre>
+</div>
+</div>
+
+</body>
+</html>
+END
