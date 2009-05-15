@@ -222,34 +222,30 @@ post_git() {
 	rm $gitdiff
 }
 
-main() {
-	[ `basename $0` = 'gitnotify' ] && gitmode=1 || gitmode=0
-	[ `basename $0` = 'diff2html' ] && gitmode=0
+[ `basename $0` = 'gitnotify' ] && gitmode=1 || gitmode=0
+[ `basename $0` = 'diff2html' ] && gitmode=0
 
-	while getopts "gr:a:m:s:" opt; do
-		case $opt in
-			r) REV=${OPTARG} ;;
-			a) AUTHOR=${OPTARG} ;;
-			m) MAILTO="$MAILTO ${OPTARG}"; mailmode=1 ;;
-			s) SUBJECT="${OPTARG}" ;;
-			g) gitmode=1 ;;
-			*) usage
-			;;
-			\? ) usage
-			;;
-		esac
-	done
+while getopts "gr:a:m:s:" opt; do
+	case $opt in
+		r) REV=${OPTARG} ;;
+		a) AUTHOR=${OPTARG} ;;
+		m) MAILTO="$MAILTO ${OPTARG}"; mailmode=1 ;;
+		s) SUBJECT="${OPTARG}" ;;
+		g) gitmode=1 ;;
+		*) usage
+		;;
+		\? ) usage
+		;;
+	esac
+done
 
-	[ $mailmode ] && prepare_mail
-	[ $gitmode ] && prepare_git || usage
+[ $mailmode ] && prepare_mail
+[ $gitmode ] && prepare_git || usage
 
-	start_html
-	summary
-	htmlizediff
-	end_html
+start_html
+summary
+htmlizediff
+end_html
 
-	[ $gitmode ] && post_git
-	[ $mailmode ] && send_mail
-}
-
-main $@
+[ $gitmode ] && post_git
+[ $mailmode ] && send_mail
