@@ -60,13 +60,11 @@ h3 { font-family: verdana,arial,helvetica,sans-serif; font-size: 10pt; font-weig
 #patch .propset .diff, #patch .binary .diff  {padding:10px 0;}
 #patch span {display:block;padding:0 10px;}
 #patch .modfile, #patch .addfile, #patch .delfile, #patch .propset, #patch .binary, #patch .copfile {border:1px solid #ccc;margin:10px 0;}
-#patch ins {background:#dfd;text-decoration:none;display:block;padding:0 0px;}
-#patch del {background:#fdd;text-decoration:none;display:block;padding:0 0px;}
 #patch .lines, .info {color:#888;background:#fff;}
 --></style>
 <title>$TITLE</title>
 </head>
-<body>
+<body style="font-family: verdana,arial,helvetica,sans-serif; font-size: 10pt;">
 
 END
 
@@ -75,7 +73,7 @@ END
 htmlizediff() {
 
 	echo '<div id="patch">
-<h3>Diff</h3> '
+<h3 style="font-family: verdana,arial,helvetica,sans-serif; font-size: 10pt; font-weight: bold;">Diff</h3> '
 
 	OIFS=$IFS
 	IFS='
@@ -125,26 +123,26 @@ htmlizediff() {
 				echo "</div>"
 			fi
 			id="`echo ${s:5}|sed -e 's/--git//g' -e's/[\/ ]/_/g'`"
-			echo "<a id='$id'/>"
-			echo "<div class='modfile'>"
-			echo "<h4>$s</h4>"
-			echo "<pre class='diff'>"
+			echo "<a name='$id'/>"
+			echo '<div style="{border:1px solid #ccc;margin:10px 0;}">'
+			echo '<h4 style="{font-family: verdana,arial,helvetica,sans-serif;font-size:10pt;padding:8px;background:#369;color:#fff;margin:0;">'$s'</h4>'
+			echo '<pre style="width:100%;background:#eee;padding: 0 0 10px 0;overflow:auto;">'
 			lastonly=0
 		elif  [[ "$t3" == '+++'  ]]; then
-			echo -ne '<span class="info">'"$s\n"'</span>'
+			echo -ne '<span style="color:#888;background:#fff">'"$s\n"'</span>'
 			lastonly=0
 		elif  [[ "$t3" == '---'  ]]; then
-			echo -ne '<span class="info">'"$s\n"'</span>'
+			echo -ne '<span style="color:#888;background:#fff">'"$s\n"'</span>'
 			lastonly=0
 		elif  [[ "$t2" == '@@'   ]]; then
-			echo -ne '<span class="info">'"$s\n"'</span>'
+			echo -ne '<span style="color:#888;background:#fff">'"$s\n"'</span>'
 			lastonly=0
 		elif  [[ "$t1" == '+'    ]]; then
-			echo -n '<ins>'"$s"
+			echo -n '<ins style="background:#dfd;text-decoration:none;display:block;padding:0 0px;">'"$s"
 			echo -ne "\n</ins>"
 			lastonly=0
 		elif  [[ "$t1" == '-'    ]]; then
-			echo -n '<del>'"$s"
+			echo -n '<del style="background:#fdd;text-decoration:none;display:block;padding:0 0px;">'"$s"
 			echo -ne "\n</del>"
 			lastonly=0
 		else
@@ -177,11 +175,11 @@ END
 
 summary() {
 	echo '<div id="msg">'
-	echo '<dl>'
+	echo '<dl style="border: 1px #006 solid; background: #369; padding: 6px; color: #fff;">'
 	if [ $gitmode = 1 ]; then
-		git log HEAD -1 --pretty=medium --shortstat | sed -e 's/^commit\(.*\)/<dt>Commit<\/dt> <dd>\1<\/dd>/' \
-												-e 's/^Author:\(.*\)/<dt>Author<\/dt> <dd>\1<\/dd>/' \
-												-e 's/^Date:\(.*\)/<dt>Date<\/dt> <dd>\1<\/dd><\/dl><h3>Log Message<\/h3><pre>/'
+		git log HEAD -1 --pretty=medium --shortstat | sed -e 's/^commit\(.*\)/<dt style="float: left; width: 6em; font-weight: bold;">Commit<\/dt> <dd>\1<\/dd>/' \
+												-e 's/^Author:\(.*\)/<dt style="float: left; width: 6em; font-weight: bold;">Author<\/dt> <dd>\1<\/dd>/' \
+												-e 's/^Date:\(.*\)/<dt style="float: left; width: 6em; font-weight: bold;">Date<\/dt> <dd>\1<\/dd><\/dl><h3>Log Message<\/h3><pre style="overflow: auto; background: #ffc; border: 1px #fc0 solid; padding: 6px;">/'
 		echo '</pre>'
 
 		#echo '<h3>Modified Paths</h3>'
@@ -189,8 +187,8 @@ summary() {
 		#echo '<li><a href="#"></a></li>'
 		#echo '</ul>'
 	else
-		echo '<dt>Author</dt> <dd>'$AUTHOR'</dd>'
-		echo '<dt>Date</dt> <dd>'
+		echo '<dt style="float: left; width: 6em; font-weight: bold;">Author</dt> <dd>'$AUTHOR'</dd>'
+		echo '<dt style="float: left; width: 6em; font-weight: bold;">Date</dt> <dd>'
 		date
 		echo '</dd></dl>'
 	fi
