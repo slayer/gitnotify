@@ -27,6 +27,10 @@ Running from sources (latest and greatest features)
 
 5. Enjoy
 
+NOTES
+-----
+* For Debian users: please use bsd-mailx instead of heirloom-mailx
+
 
 OPTIONS
 =======
