@@ -202,7 +202,13 @@ prepare_mail() {
 
 send_mail() {
 	exec 1>&6 6>&-
-	mail -a "Content-Type: text/html; charset=UTF-8" -a "Content-Transfer-Encoding: 8bit" -a "X-Mailer: GITNotify v0.1: http://github.com/slayer/gitnotify/tree/master" -s "${SUBJECT:-no subject}" $MAILTO < $tempfile
+  headers_param='-a "Content-Type: text/html; charset=UTF-8" -a "Content-Transfer-Encoding: 8bit" -a "X-Mailer: GITNotify: http://github.com/slayer/gitnotify"'
+  subject_param='-s "${SUBJECT:-no subject}"'
+  if [ -x `which bsd-mailx` ]; then
+    bsd-mailx $headers_param $subject_param $MAILTO < $tempfile
+  else
+    mail $subject_param $MAILTO < $tempfile
+  fi
 	rm $tempfile
 }
 
