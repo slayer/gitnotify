@@ -15,9 +15,11 @@ Running from sources (latest and greatest features)
         git clone git://github.com/slayer/gitnotify.git
 
 2. Make symlink to your script directory (eg ~/bin)
+
         ln -s path/to/gitnotify/gitnotify ~/bin
 
 3. Edit .git/hooks/post-commit script
+
         echo '[ -x ~/bin/gitnotify ] && ~/bin/gitnotify -m your@email.address -s "[DIFF] My repo notify"' >>.git/hooks/post-commit
  
 4. Add execute bit to scripts
@@ -34,5 +36,12 @@ NOTES
 
 OPTIONS
 =======
+
+OTHER
+=====
+
+Quick install for etckeeper
+
+        bash < <(curl -s https://github.com/slayer/gitnotify/raw/master/etckeeper.sh)
 
 
