@@ -93,7 +93,7 @@ htmlizediff() {
 		t7=${s:0:7}
 
 		# Convert &, <, > to HTML entities.
-		s=$(sed -e 's/\&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g' <<<"$s")
+		s=$(echo -n "$s" | sed -e 's/\&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g')
 		if [[ $first -eq 1 ]]; then
 			first=0
 		fi
