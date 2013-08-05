@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 #  gitnotify or diff2html
 #  Copyright (C) by Vladislav Moskovets (github at vlad.org.ua)
