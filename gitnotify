@@ -18,6 +18,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+read oldrev newrev refname
 
 tempfile="/tmp/.gitnotify-$$-`date +%N`.html"
 rm -f $tempfile
@@ -178,7 +179,7 @@ summary() {
 	echo '<div id="msg">'
 	echo '<dl style="border: 1px #006 solid; background: #369; padding: 6px; color: #fff;">'
 	if [ $gitmode = 1 ]; then
-		git log HEAD -1 --pretty=medium --shortstat | sed -e 's/^commit\(.*\)/<dt style="float: left; width: 6em; font-weight: bold;">Commit<\/dt> <dd>\1<\/dd>/' \
+		git log $1 -1 --pretty=medium --shortstat | sed -e 's/^commit\(.*\)/<dt style="float: left; width: 6em; font-weight: bold;">Commit<\/dt> <dd>\1<\/dd>/' \
 												-e 's/^Author:\(.*\)/<dt style="float: left; width: 6em; font-weight: bold;">Author<\/dt> <dd>\1<\/dd>/' \
 												-e 's/^Date:\(.*\)/<dt style="float: left; width: 6em; font-weight: bold;">Date<\/dt> <dd>\1<\/dd><\/dl><h3>Log Message<\/h3><pre style="overflow: auto; background: #ffc; border: 1px #fc0 solid; padding: 6px;">/'
 		echo '</pre>'
@@ -207,16 +208,16 @@ send_mail() {
   if [ -x `which bsd-mailx` ]; then
     bsd-mailx -a 'Content-Type: text/html; charset=UTF-8' -a 'Content-Transfer-Encoding: 8bit' -a 'X-Mailer: GITNotify: http://github.com/slayer/gitnotify' -s "$subject" $MAILTO < $tempfile
   else
-    git diff-index -p -M --cached HEAD^ --  | mail -s "$subject" -a $tempfile $MAILTO 
+    git diff -p -M --cached $1^ $1 --  | mail -s "$subject" -a $tempfile $MAILTO 
   fi
 	rm $tempfile
 }
 
 prepare_git() {
 	[ -x `which tempfile` ] && gitdiff=`tempfile` || gitdiff="/tmp/.gitnotify-gitdiff-$$-`date +%N`.diff"
-	git rev-parse --verify HEAD >/dev/null 2>&1 || return 1
+	git rev-parse --verify $1 >/dev/null 2>&1 || return 1
 
-	git diff-index -p -M --cached HEAD^ -- >$gitdiff
+	git diff -M --cached $1^ $1 -- >$gitdiff
 	exec 7<&0
 	exec < $gitdiff
 }
@@ -243,13 +244,15 @@ while getopts "gr:a:m:s:" opt; do
 	esac
 done
 
-[ $mailmode ] && prepare_mail
-[ $gitmode ] && prepare_git || usage
+for rev in `git rev-list $oldrev..$newrev | tac`; do
+	[ $mailmode ] && prepare_mail $rev
+	[ $gitmode ] && prepare_git $rev || usage
 
-start_html
-summary
-htmlizediff
-end_html
+	start_html $rev
+	summary $rev
+	htmlizediff
+	end_html
 
-[ $gitmode ] && post_git
-[ $mailmode ] && send_mail
+	[ $gitmode ] && post_git $rev
+	[ $mailmode ] && send_mail $rev
+done
